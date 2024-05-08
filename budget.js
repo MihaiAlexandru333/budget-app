@@ -224,7 +224,7 @@ function updatePaginationControls(expenses) {
 		});
 		paginationContainer.appendChild(pageLink);
 	}
-	pageNumber.innerHTML = `Page: ${currentPage} / ${totalPages}`;
+	pageNumber.innerHTML = `  Page: ${currentPage} / ${totalPages}`;
 }
 
 /* total */

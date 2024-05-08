@@ -58,3 +58,31 @@ th {
   cursor: pointer;
 
 }
+
+#content {
+  display: flex;
+  justify-content: space-between;
+}
+
+#table-container {
+  flex: 1; 
+  position: relative; 
+}
+
+#filters {
+  flex: 0 0 200px; 
+}
+
+#myTable {
+  width: 100%; 
+}
+
+#pagination, #page-number {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+}
+
+#pagination {
+  margin-bottom: 20px; 
+}
