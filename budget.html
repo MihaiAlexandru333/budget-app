@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>Document</title>
+		<link rel="stylesheet" type="text/css" href="style.css" />
+	</head>
+	<body>
+		<h1>Budget App</h1>
+		<h2>Expenses</h2>
+		<button name="addExpense" id="add-expense">Add Expense</button>
+		<div id="modal" class="modal">
+			<div class="modal-content">
+				<span class="close">&times;</span>
+				<div class="input-row">
+					<label for="date">Expense date:</label>
+					<input type="date" id="date" name="expense-date" />
+				</div>
+				<div class="input-row">
+					<label for="category">Category</label>
+					<div id="user-category-list"></div>
+				</div>
+				<div class="input-row">
+					<label for="user-category">Add new category</label>
+					<input
+						type="text"
+						id="user-category-text"
+						name="user-category-text"
+						minlength="3"
+						maxlength="15"
+					/>
+					<button type="button" id="user-category">+</button>
+				</div>
+				<div class="input-row">
+					<label for="amount">amount $</label>
+					<input
+						type="number"
+						id="amount"
+						name="operator-amount"
+						min="0"
+						placeholder="$ amount"
+					/>
+				</div>
+				<button type="button" id="submit-expense">Submit Expense</button>
+			</div>
+		</div>
+
+		<table id="myTable">
+			<thead>
+				<tr>
+					<th id="date-header">Date</th>
+					<th id="category-header">Category</th>
+					<th id="amount-header">Amount</th>
+				</tr>
+			</thead>
+			<tbody id="tableBody"></tbody>
+		</table>
+		<div id="pagination"></div>
+		<div>
+			<span id="page-number">Page:</span>
+		</div>
+
+		<div id="filters">
+			<h3>Filters</h3>
+			<button id="reset">Reset Filters</button>
+			<div id="amount-filter">
+				<h4>Amount filter</h4>
+				<label for="operator">Filter by amount</label>
+				<select name="operator" id="operator">
+					<option value="">Select operator</option>
+					<option value=">=">above</option>
+					<option value="<=">bellow</option>
+					<option value="===">equal to</option>
+				</select>
+				<label for="user-category">Enter amount</label>
+				<input
+					type="number"
+					id="operator-amount"
+					name="operator-amount"
+					min="0"
+				/>
+			</div>
+
+			<div id="category-filter-container">
+				<h4>Category filter</h4>
+				<label for="category-filter">Filter by category</label>
+				<select name="category-filter" id="category-filter">
+					<option value="">Select category</option>
+				</select>
+			</div>
+
+			<div id="date-filter-container">
+				<h4>Date filters</h4>
+				<div id="input-row">
+					<input
+						type="radio"
+						id="date-range-filter"
+						name="date-range-filter-group"
+						value=""
+					/>
+					<label for="date-filter">From</label>
+					<input type="date" id="date-filter-from" name="date-filter" />
+					<label for="date-filter">To</label>
+					<input type="date" id="date-filter-to" name="date-filter" />
+					<button id="date-range-save">Save Range</button>
+					<button id="date-range-reset">Reset Range</button>
+				</div>
+				<div id="input-row">
+					<input
+						type="radio"
+						id="current-week-filter"
+						name="date-range-filter-group"
+						value="current-week"
+					/>
+					<label for="current-week-filter">Current week</label>
+				</div>
+				<div id="input-row">
+					<input
+						type="radio"
+						id="current-month-filter"
+						name="date-range-filter-group"
+						value="current-month"
+					/>
+					<label for="current-month-filter">Current month</label>
+				</div>
+				<div id="input-row">
+					<input
+						type="radio"
+						id="last3-month-filter"
+						name="date-range-filter-group"
+						value="last3-month-filter"
+					/>
+					<label for="last3-month-filter">Last 3 months</label>
+				</div>
+				<div id="input-row">
+					<input
+						type="radio"
+						id="last3-week-filter"
+						name="date-range-filter-group"
+						value="last3-week-filter"
+					/>
+					<label for="last3-week-filter">Last 3 weeks</label>
+				</div>
+				<div id="input-row">
+					<input
+						type="radio"
+						id="current-year-filter"
+						name="date-range-filter-group"
+						value="current-year-filter"
+					/>
+					<label for="current-year-filter">Current year</label>
+				</div>
+			</div>
+
+			<button id="apply-filters">Apply</button>
+		</div>
+		<span id="total"></span>
+		<script type="module" src="budget.js"></script>
+		<script type="module" src="mockExpenses.js"></script>
+	</body>
+</html>
