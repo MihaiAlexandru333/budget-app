@@ -249,6 +249,7 @@ resetFilters.addEventListener("click", () => {
 	filterRadioButtons.forEach((button) => {
 		button.checked = false;
 	});
+	filteredDbExpenses = dbExpenses;
 	categoryFilter.value = "";
 	amountOperator.value = "";
 	amountOperatorMoney.value = "";
