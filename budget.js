@@ -147,8 +147,6 @@ function addExpense(e) {
 	expenseAmount.value = "";
 }
 
-console.log(dbExpenses);
-
 /* populate table */
 function populateTable(expenses) {
 	tableBody.innerHTML = "";
@@ -171,41 +169,34 @@ function populateTable(expenses) {
 populateTable(dbExpenses);
 
 /* Sorting */
-let dateSortOrder = 1;
-let categorySortOrder = 1;
-let amountSortOrder = 1;
+let sortOrder = 1;
 
-function sortByDate() {
-	const sorted = filteredDbExpenses.sort(
-		(a, b) => new Date(a.date) - new Date(b.date) * dateSortOrder
-	);
-	dateSortOrder *= -1;
+function sortBy(property) {
+	console.log("new sort function");
+	sortOrder *= -1;
+
+	const sorted = filteredDbExpenses.sort((a, b) => {
+		if (a[property] < b[property]) {
+			return -1 * sortOrder;
+		} else if (a[property] > b[property]) {
+			return 1 * sortOrder;
+		} else {
+			return 0;
+		}
+	});
+
 	populateTable(sorted);
 }
 
-function sortByCategory() {
-	const sorted = filteredDbExpenses.sort(
-		(a, b) => a.category.localeCompare(b.category) * categorySortOrder
-	);
-	categorySortOrder *= -1;
-	populateTable(sorted);
-}
-
-function sortByAmount() {
-	const sorted = filteredDbExpenses.sort(
-		(a, b) => (a.amount - b.amount) * amountSortOrder
-	);
-	amountSortOrder *= -1;
-	populateTable(sorted);
-}
-
-document.getElementById("date-header").addEventListener("click", sortByDate);
+document
+	.getElementById("date-header")
+	.addEventListener("click", () => sortBy("date"));
 document
 	.getElementById("category-header")
-	.addEventListener("click", sortByCategory);
+	.addEventListener("click", () => sortBy("category"));
 document
 	.getElementById("amount-header")
-	.addEventListener("click", sortByAmount);
+	.addEventListener("click", () => sortBy("amount"));
 
 /* pagination */
 function updatePaginationControls(expenses) {
@@ -218,6 +209,8 @@ function updatePaginationControls(expenses) {
 		const pageLink = document.createElement("a");
 		pageLink.href = "#";
 		pageLink.textContent = i;
+		pageLink.style.paddingLeft = "3px";
+		pageLink.style.paddingRight = "3px";
 		pageLink.addEventListener("click", () => {
 			currentPage = i;
 			populateTable(expenses);
@@ -334,71 +327,70 @@ last3MonthsFilter.addEventListener("click", getDateFilter);
 last3WeeksFilter.addEventListener("click", getDateFilter);
 currentYear.addEventListener("click", getDateFilter);
 
-function getCurrentWeek() {
+function getDate(filter) {
 	const currentDate = new Date();
-	const weekStart = currentDate.getDate() - currentDate.getDay();
-	const weekEnd = currentDate.getDate();
-	const startDate = new Date(
-		currentDate.getFullYear(),
-		currentDate.getMonth(),
-		weekStart
-	);
-	startDate.setHours(0, 0, 0, 0);
-	const endDate = new Date(
-		currentDate.getFullYear(),
-		currentDate.getMonth(),
-		weekEnd
-	);
-	endDate.setHours(23, 59, 59, 999);
-	return { startDate, endDate };
-}
+	let startDate, endDate;
 
-function getCurrentMonth() {
-	const currentDate = new Date();
-	const startDate = new Date(
-		currentDate.getFullYear(),
-		currentDate.getMonth(),
-		1
-	);
-	startDate.setHours(0, 0, 0, 0);
-	const endDate = new Date(
-		currentDate.getFullYear(),
-		currentDate.getMonth() + 1,
-		0
-	);
-	endDate.setHours(23, 59, 59, 999);
-	return { startDate, endDate };
-}
+	switch (filter) {
+		case "current-week":
+			const weekStart = currentDate.getDate() - currentDate.getDay();
+			const weekEnd = currentDate.getDate();
+			startDate = new Date(
+				currentDate.getFullYear(),
+				currentDate.getMonth(),
+				weekStart
+			);
+			startDate.setHours(0, 0, 0, 0);
+			endDate = new Date(
+				currentDate.getFullYear(),
+				currentDate.getMonth(),
+				weekEnd
+			);
+			endDate.setHours(23, 59, 59, 999);
+			break;
+		case "current-month":
+			startDate = new Date(
+				currentDate.getFullYear(),
+				currentDate.getMonth(),
+				1
+			);
+			startDate.setHours(0, 0, 0, 0);
+			endDate = new Date(
+				currentDate.getFullYear(),
+				currentDate.getMonth() + 1,
+				0
+			);
+			endDate.setHours(23, 59, 59, 999);
+			break;
+		case "last3-month-filter":
+			startDate = new Date(
+				currentDate.getFullYear(),
+				currentDate.getMonth() - 2,
+				1
+			);
+			startDate.setHours(0, 0, 0, 0);
+			endDate = new Date();
+			endDate.setHours(23, 59, 59, 999);
+			break;
+		case "last3-week-filter":
+			startDate = new Date();
+			startDate.setDate(currentDate.getDate() - 21);
+			startDate.setHours(0, 0, 0, 0);
+			endDate = new Date();
+			endDate.setHours(23, 59, 59, 999);
+			break;
+		case "current-year-filter":
+			startDate = new Date(currentDate.getFullYear(), 0, 1);
+			startDate.setHours(0, 0, 0, 0);
+			endDate = new Date(currentDate.getFullYear(), 11, 31);
+			endDate.setHours(23, 59, 59, 999);
+			break;
+		default:
+			startDate = null;
+			endDate = null;
+			break;
+	}
 
-function getLastThreeMonths() {
-	const currentDate = new Date();
-	const startDate = new Date(
-		currentDate.getFullYear(),
-		currentDate.getMonth() - 2,
-		1
-	);
-	startDate.setHours(0, 0, 0, 0);
-	const endDate = new Date();
-	endDate.setHours(23, 59, 59, 999);
-	return { startDate, endDate };
-}
-
-function getLastThreeWeeks() {
-	const currentDate = new Date();
-	const startDate = new Date();
-	startDate.setDate(currentDate.getDate() - 21);
-	startDate.setHours(0, 0, 0, 0);
-	const endDate = new Date();
-	endDate.setHours(23, 59, 59, 999);
-	return { startDate, endDate };
-}
-
-function getCurrentYear() {
-	const currentDate = new Date();
-	const startDate = new Date(currentDate.getFullYear(), 0, 1);
-	startDate.setHours(0, 0, 0, 0);
-	const endDate = new Date(currentDate.getFullYear(), 11, 31);
-	endDate.setHours(23, 59, 59, 999);
 	return { startDate, endDate };
 }
 
@@ -434,27 +426,28 @@ function applyFilters() {
 			// Apply other date filters if date range is not selected
 			switch (dateFilterChecked) {
 				case "current-week":
-					const { startDate, endDate } = getCurrentWeek();
+					const { startDate, endDate } = getDate(dateFilterChecked);
 					if (!(itemDate >= startDate && itemDate <= endDate)) return false;
 					break;
 				case "current-month":
 					const { startDate: startMonth, endDate: endMonth } =
-						getCurrentMonth();
+						getDate(dateFilterChecked);
 					if (!(itemDate >= startMonth && itemDate <= endMonth)) return false;
 					break;
 				case "last3-month-filter":
 					const { startDate: start3Months, endDate: end3Months } =
-						getLastThreeMonths();
+						getDate(dateFilterChecked);
 					if (!(itemDate >= start3Months && itemDate <= end3Months))
 						return false;
 					break;
 				case "last3-week-filter":
 					const { startDate: start3Weeks, endDate: end3Weeks } =
-						getLastThreeWeeks();
+						getDate(dateFilterChecked);
 					if (!(itemDate >= start3Weeks && itemDate <= end3Weeks)) return false;
 					break;
 				case "current-year-filter":
-					const { startDate: startYear, endDate: endYear } = getCurrentYear();
+					const { startDate: startYear, endDate: endYear } =
+						getDate(dateFilterChecked);
 					if (!(itemDate >= startYear && itemDate <= endYear)) return false;
 					break;
 				default:
