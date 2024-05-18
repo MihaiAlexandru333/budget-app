@@ -29,6 +29,7 @@ const categories = [
 	"HEALTH",
 	"NON-ESSENTIAL",
 ];
+console.log(array);
 
 let dbExpenses = array;
 let filteredDbExpenses = dbExpenses;
