@@ -257,7 +257,6 @@ resetFilters.addEventListener("click", () => {
 	getTotalAmount(dbExpenses);
 	updatePaginationControls(dbExpenses);
 	populateTable(dbExpenses);
-	console.log("latest fix");
 });
 
 //category filter
