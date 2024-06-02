@@ -10,38 +10,40 @@
 		<h2>Expenses</h2>
 		<button name="addExpense" id="add-expense">Add Expense</button>
 		<div id="modal" class="modal">
-			<div class="modal-content">
-				<span class="close">&times;</span>
-				<div class="input-row">
-					<label for="date">Expense date:</label>
-					<input type="date" id="date" name="expense-date" />
-				</div>
-				<div class="input-row">
-					<label for="category">Category</label>
-					<div id="user-category-list"></div>
-				</div>
-				<div class="input-row">
-					<label for="user-category">Add new category</label>
-					<input
+			<form id="expense-form">
+				<div class="modal-content">
+					<span class="close">&times;</span>
+					<div class="input-row">
+						<label for="date">Expense date:</label>
+						<input type="date" id="date" name="date" />
+					</div>
+					<div class="input-row">
+						<label for="category">Category</label>
+						<div id="user-category-list"></div>
+					</div>
+					<div class="input-row">
+						<label for="user-category">Add new category</label>
+						<input
 						type="text"
 						id="user-category-text"
-						name="user-category-text"
+						name="category"
 						minlength="3"
 						maxlength="15"
-					/>
-					<button type="button" id="user-category">+</button>
-				</div>
-				<div class="input-row">
-					<label for="amount">amount $</label>
-					<input
+						/>
+						<button type="button" id="user-category">+</button>
+					</div>
+					<div class="input-row">
+						<label for="amount">amount $</label>
+						<input
 						type="number"
 						id="amount"
-						name="operator-amount"
+						name="amount"
 						min="0"
 						placeholder="$ amount"
-					/>
-				</div>
-				<button type="button" id="submit-expense">Submit Expense</button>
+						/>
+					</div>
+					<button type="button" id="submit-expense">Submit Expense</button>
+				</form>
 			</div>
 		</div>
 <div id="content">
@@ -139,6 +141,34 @@
 		<button id="apply-filters">Apply Filters</button>
 		<button id="reset">Reset Filters</button>
 	</div>
+
+	<div id="edit-modal" class="modal">
+		<form id="edit-expense-form">
+		  <div class="modal-content">
+			<span class="close">&times;</span>
+			<div class="input-row">
+			  <label for="edit-date">Expense date:</label>
+			  <input type="date" id="edit-date" name="date" />
+			</div>
+			<div class="input-row">
+			  <label for="edit-category">Category</label>
+			  <div id="edit-user-category-list"></div>
+			</div>
+
+			<div class="input-row">
+			  <label for="edit-amount">amount $</label>
+			  <input
+				type="number"
+				id="edit-amount"
+				name="amount"
+				min="0"
+				placeholder="$ amount"
+			  />
+			</div>
+			<button type="button" id="edit-submit-expense">Save Changes</button>
+		  </div>
+		</form>
+	  </div>
 	<div id="table-container">
 
 		<table id="myTable">
@@ -147,6 +177,7 @@
 					<th id="date-header">Date</th>
 					<th id="category-header">Category</th>
 					<th id="amount-header">Amount</th>
+					<th id="action-header">Action</th>
 				</tr>
 			</thead>
 			<tbody id="tableBody"></tbody>

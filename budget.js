@@ -1,14 +1,18 @@
-import { array } from "./mockExpenses.js";
-
+const editModal = document.getElementById("edit-modal");
 const modal = document.getElementById("modal");
 const expenseButton = document.getElementById("add-expense");
 const closeSpan = document.getElementsByClassName("close")[0];
+const closeEditSpan = document.getElementsByClassName("close")[1];
 const expenseDate = document.getElementById("date");
+const editExpenseDate = document.getElementById("edit-date");
 const categorySelect = document.getElementById("user-category-list");
+const editCategorySelect = document.getElementById("edit-user-category-list");
 const categoryAdd = document.getElementById("user-category");
 const categoryText = document.getElementById("user-category-text");
 const expenseAmount = document.getElementById("amount");
-const submitExpenseButton = document.getElementById("submit-expense");
+const editExpenseAmount = document.getElementById("edit-amount");
+const addExpenseButton = document.getElementById("submit-expense");
+const saveEditedExpense = document.getElementById("edit-submit-expense");
 const radioButtons = document.querySelectorAll(
 	'input[type="radio"][name="category"]'
 );
@@ -29,9 +33,17 @@ const categories = [
 	"HEALTH",
 	"NON-ESSENTIAL",
 ];
-console.log(array);
 
-let dbExpenses = array;
+let dbExpenses = (await JSON.parse(localStorage.getItem("dbExpenses"))) || [];
+
+async function initialFetch() {
+	const response = await fetch("http://localhost:3000/expenses");
+	dbExpenses = await response.json();
+	populateTable(dbExpenses);
+	localStorage.setItem("dbExpenses", JSON.stringify(dbExpenses));
+}
+initialFetch();
+
 let filteredDbExpenses = dbExpenses;
 
 let userCategories = [];
@@ -57,24 +69,41 @@ categories.forEach((cat) => {
 	label.textContent = cat;
 	li.appendChild(label);
 
-	categorySelect.appendChild(li);
+	categorySelect.appendChild(li.cloneNode(true));
+	editCategorySelect.appendChild(li.cloneNode(true));
 });
 
 /* open modal */
 function handleOpenModal() {
 	modal.style.display = "block";
+	categoryText.value = "";
+	expenseDate.value = "";
+	expenseAmount.value = "";
+	radioButtons.forEach((radio) => {
+		radio.checked = false;
+	});
+}
+
+function handleOpenEditModal() {
+	editModal.style.display = "block";
 }
 expenseButton.addEventListener("click", handleOpenModal);
 
 /* close modal */
 function handleCloseModal() {
 	modal.style.display = "none";
+	editModal.style.display = "none";
+	categoryText.value = "";
+	expenseDate.value = "";
+	expenseAmount.value = "";
 }
 closeSpan.addEventListener("click", handleCloseModal);
+closeEditSpan.addEventListener("click", handleCloseModal);
 
 function handleCloseModalOutsideClick(e) {
-	if (e.target == modal) {
+	if (e.target == modal || e.target == editModal) {
 		modal.style.display = "none";
+		editModal.style.display = "none";
 	}
 }
 window.addEventListener("click", handleCloseModalOutsideClick);
@@ -123,29 +152,64 @@ function addCategory() {
 
 /* add expense */
 
-let radioValue = "";
-
-submitExpenseButton.addEventListener("click", addExpense);
-function addExpense(e) {
+addExpenseButton.addEventListener("click", addExpense);
+async function addExpense(e) {
+	let radioValue = null;
 	e.preventDefault();
-	if (!expenseDate.value || !radioValue || !expenseAmount) {
+	const categoryRadio = document.querySelectorAll('input[name="category"]');
+
+	let selectedRadio = null;
+	categoryRadio.forEach((radioButton) => {
+		if (radioButton.checked) {
+			selectedRadio = radioButton;
+		}
+	});
+
+	// Retrieve the value of the selected radio button
+	if (selectedRadio) {
+		radioValue = selectedRadio.value;
+	}
+
+	console.log("expense date value", expenseDate.value);
+	console.log("radio value", radioValue);
+	console.log("expense amount value", expenseAmount.value);
+	if (!expenseDate.value || !radioValue || !expenseAmount.value) {
 		alert("Please fill all fields");
 		return;
 	}
-	const newExpense = {
-		id: Date.now(),
-		date: expenseDate.value,
-		category: radioValue,
-		amount: parseFloat(expenseAmount.value),
-	};
-	dbExpenses.push(newExpense);
-	console.log(dbExpenses);
 
-	expenseDate.value = "";
-	radioButtons.forEach((button) => {
-		button.value = "";
+	const formData = {
+		date: expenseDate.value,
+		amount: expenseAmount.value,
+		category: radioValue,
+	};
+
+	console.log("Form data:", formData);
+
+	const response = await fetch("http://localhost:3000/expenses", {
+		method: "POST",
+		headers: {
+			"Content-Type": "application/json",
+		},
+		body: JSON.stringify(formData),
 	});
+
+	if (response.ok) {
+		const data = await response.json();
+		alert("Expense added successfully");
+		console.log("Response:", data);
+	} else {
+		alert("Failed to add expense");
+		console.error("Error:", response.status);
+	}
+	//reset modal fields
+	expenseDate.value = "";
 	expenseAmount.value = "";
+	radioValue = "";
+	modal.style.display = "none";
+	initialFetch();
+	//populate table
+	populateTable(dbExpenses);
 }
 
 /* populate table */
@@ -159,15 +223,137 @@ function populateTable(expenses) {
 	currentExpenses.forEach((item) => {
 		const row = document.createElement("tr");
 		row.innerHTML = `
-		<td>${item.date}</td>
-		<td>${item.category}</td>
-		<td>${item.amount}</td>
-	  `;
+			<td>${item.date}</td>
+			<td>${item.category}</td>
+			<td>${item.amount}</td>
+			<td>
+				<button class="delete-button" id="delete-button">Delete</button>
+				<button class="edit-button" id="edit-button">Edit</button>
+			</td>
+		`;
+		const editButton = row.querySelector(".edit-button");
+		editButton.addEventListener("click", () => {
+			editExpense(item.id);
+		});
+		const deleteButton = row.querySelector(".delete-button");
+		deleteButton.addEventListener("click", () => {
+			deleteExpense(item.id);
+		});
 		tableBody.appendChild(row);
 	});
 	updatePaginationControls(expenses);
 }
 populateTable(dbExpenses);
+
+//edit expense
+async function editExpense(expenseId) {
+	const categoryRadio = document.querySelectorAll('input[name="category"]');
+	let radioValue = "";
+
+	editModal.style.display = "block";
+
+	await fetch(`http://localhost:3000/expenses/${expenseId}`)
+		.then((response) => response.json())
+		.then((expense) => {
+			// populate the modal with the expense data
+			editExpenseDate.value = expense.date;
+			editExpenseAmount.value = expense.amount;
+			categoryRadio.forEach((radioButton) => {
+				if (radioButton.value === expense.category) {
+					radioButton.checked = true;
+				} else {
+					radioButton.checked = false;
+				}
+			});
+
+			// add an event listener to the submit button
+			saveEditedExpense.addEventListener("click", () => {
+				const updatedExpense = {
+					id: expenseId,
+					date: editExpenseDate.value,
+					amount: editExpenseAmount.value,
+					category: expense.category,
+				};
+
+				let selectedRadio = null;
+				categoryRadio.forEach((radioButton) => {
+					if (radioButton.checked) {
+						selectedRadio = radioButton;
+					}
+				});
+
+				// Retrieve the value of the selected radio button
+				if (selectedRadio) {
+					updatedExpense.category = selectedRadio.value;
+				}
+
+				// Send a PUT request to the server to update the expense
+				fetch(`http://localhost:3000/expenses/${expenseId}`, {
+					method: "PUT",
+					headers: {
+						"Content-Type": "application/json",
+					},
+					body: JSON.stringify(updatedExpense),
+				})
+					.then((response) => response.json())
+					.then((data) => {
+						// Update the UI with the updated expense data
+						expense.date = data.expense.date;
+						expense.amount = data.expense.amount;
+						expense.category = data.expense.category;
+						categoryRadio.forEach((radioButton) => {
+							if (radioButton.value === data.expense.category) {
+								radioButton.checked = true;
+							} else {
+								radioButton.checked = false;
+							}
+						});
+						initialFetch();
+
+						// Close the modal and reset
+						editExpenseDate.value = "";
+						editExpenseAmount.value = "";
+						radioValue = "";
+						editModal.style.display = "none";
+
+						// Show a success message
+						alert("Expense updated successfully");
+					})
+					.catch((error) => {
+						console.error("Error:", error);
+						alert("Failed to update expense");
+					});
+			});
+		})
+		.catch((error) => {
+			console.error("Error:", error);
+		});
+}
+
+async function deleteExpense(expenseId) {
+	// Confirm the user wants to delete the expense
+	const confirmDelete = confirm(
+		"Are you sure you want to delete this expense?"
+	);
+	if (!confirmDelete) {
+		return;
+	}
+
+	const index = dbExpenses.findIndex((expense) => expense.id === expenseId);
+	if (index !== -1) {
+		dbExpenses.splice(index, 1);
+		localStorage.setItem("dbExpenses", JSON.stringify(dbExpenses));
+		await fetch(`http://localhost:3000/expenses/${expenseId}`, {
+			method: "DELETE",
+		});
+		const updatedExpenses = await fetch("http://localhost:3000/expenses").then(
+			(response) => response.json()
+			//alert the user that the expense was deleted
+		);
+		alert("Expense deleted successfully");
+		populateTable(updatedExpenses);
+	}
+}
 
 /* Sorting */
 let sortOrder = 1;
@@ -177,9 +363,11 @@ function sortBy(property) {
 	sortOrder *= -1;
 
 	const sorted = filteredDbExpenses.sort((a, b) => {
-		if (a[property] < b[property]) {
+		const valueA = String(a[property]).padStart(10, "0");
+		const valueB = String(b[property]).padStart(10, "0");
+		if (valueA < valueB) {
 			return -1 * sortOrder;
-		} else if (a[property] > b[property]) {
+		} else if (valueA > valueB) {
 			return 1 * sortOrder;
 		} else {
 			return 0;
@@ -226,10 +414,7 @@ let total = document.getElementById("total");
 let sum = 0;
 
 function getTotalAmount(expenses) {
-	sum = 0;
-	const totalSum = expenses.forEach((item) => {
-		sum += item.amount;
-	});
+	sum = expenses.reduce((sum, expense) => sum + parseFloat(expense.amount), 0);
 	total.innerText = `Total: $${sum}`;
 }
 
@@ -413,7 +598,7 @@ function applyFilters() {
 			const operators = {
 				">=": (a, b) => a >= b,
 				"<=": (a, b) => a <= b,
-				"===": (a, b) => a === b,
+				"===": (a, b) => a == b,
 			};
 			if (!operators[operator](item.amount, amount)) return false;
 		}
